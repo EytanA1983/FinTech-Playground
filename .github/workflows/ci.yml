@@ -1,0 +1,51 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build-verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # ------------------------------------------
+      # NestJS (API)
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+      - name: Install dependencies
+        run: |
+          cd src/api
+          npm ci
+      - name: Lint
+        run: cd src/api && npm run lint
+      - name: Test
+        run: cd src/api && npm run test
+
+      # ------------------------------------------
+      # Python ML Service
+      - name: Python setup
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install ML deps
+        run: |
+          cd ml_service
+          pip install -r requirements.txt
+      - name: Run ML lint
+        run: |
+          cd ml_service
+          pip install pylint
+          pylint --rcfile=.pylintrc app.py  # .pylintrc optional
+      - name: Package Docker images
+        uses: actions/checkout@v4
+        run: |
+          docker build -t banking-api:ci ./src/api
+          docker build -t ml-service:ci ./ml_service

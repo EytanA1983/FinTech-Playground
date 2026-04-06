@@ -1,0 +1,23 @@
+import { Body, Controller, Get, Post } from '@nestjs/common';
+import { TransactionsService } from './transactions.service';
+import { CreateTransactionDto } from './dto/create-transaction.dto';
+
+@Controller('transactions')
+export class TransactionsController {
+  constructor(private readonly transactionsService: TransactionsService) {}
+
+  @Post()
+  async create(@Body() dto: CreateTransactionDto) {
+    return this.transactionsService.create(dto);
+  }
+
+  // Browser-friendly demo endpoint
+  @Get('demo')
+  async demo() {
+    return this.transactionsService.create({
+      accountId: 'demo-account-1',
+      amount: 149.9,
+      currency: 'USD',
+    });
+  }
+}
